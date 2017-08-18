@@ -29,16 +29,18 @@ from sklearn.model_selection import GridSearchCV
 
 data = pd.read_csv('worked.csv')
 
-train = data[:800]
+train = data
 test = data[800:]
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 
 y = np.ravel(train[['outcome']])
-X = train.drop('outcome', 1).drop('hero', 1)
+X = train.drop('outcome', 1).drop('hero', 1).drop('AHero_0.0', 1).drop('OHero_0.0', 1)
 
 y_test = np.ravel(test[['outcome']])
-X_test = test.drop('outcome', 1).drop('hero', 1)
+X_test = test.drop('outcome', 1).drop('hero', 1).drop('AHero_0.0', 1).drop('OHero_0.0', 1)
 
 
 # clf_svm = svm.SVC(
@@ -72,19 +74,19 @@ X_test = test.drop('outcome', 1).drop('hero', 1)
 # print('knn')
 # print(score_knn)
 
-bagging = BaggingClassifier(
-    KNeighborsClassifier(
-        n_neighbors=2,
-        weights='distance'
-        ),
-    oob_score=True,
-    max_samples=0.5,
-    max_features=1.0
-    )
-clf_bag = bagging.fit(X,y)
-score_bag = clf_bag.oob_score_
-print('bagging?')
-print(score_bag)
+# bagging = BaggingClassifier(
+#     KNeighborsClassifier(
+#         n_neighbors=2,
+#         weights='distance'
+#         ),
+#     oob_score=True,
+#     max_samples=0.5,
+#     max_features=1.0
+#     )
+# clf_bag = bagging.fit(X,y)
+# score_bag = clf_bag.oob_score_
+# print('bagging?')
+# print(score_bag)
 
 # clf_tree = tree.DecisionTreeClassifier(
 #     #max_depth=3,\
@@ -126,17 +128,17 @@ print(score_bag)
 # import warnings
 # warnings.filterwarnings("ignore")
 
-clf_gb = GradientBoostingClassifier(
-            #loss='exponential',
-            n_estimators=1000,
-            learning_rate=0.1,
-            max_depth=3,
-            subsample=0.5,
-            random_state=0).fit(X, y)
-clf_gb.fit(X,y)
-score_gb = cross_val_score(clf_gb, X, y, cv=5).mean()
-print('gb')
-print(score_gb)
+# clf_gb = GradientBoostingClassifier(
+#             #loss='exponential',
+#             n_estimators=1000,
+#             learning_rate=0.1,
+#             max_depth=3,
+#             subsample=0.5,
+#             random_state=0).fit(X, y)
+# clf_gb.fit(X,y)
+# score_gb = cross_val_score(clf_gb, X, y, cv=5).mean()
+# print('gb')
+# print(score_gb)
 
 # clf_ada = AdaBoostClassifier(n_estimators=400, learning_rate=0.1)
 # clf_ada.fit(X,y)
@@ -144,10 +146,53 @@ print(score_gb)
 # print('adaboost')
 # print(score_ada)
 
-clf = clf_gb
-scores = cross_val_score(clf, X, y, cv=5)
-print(scores)
-print("Mean score = %.3f, Std deviation = %.3f"%(np.mean(scores),np.std(scores)))
+# clf = clf_ext
+# scores = cross_val_score(clf, X, y, cv=5)
+# print(scores)
+# print("Mean score = %.3f, Std deviation = %.3f"%(np.mean(scores),np.std(scores)))
 
-score_ext_test = clf.score(X_test,y_test)
-print(score_ext_test)
+# score_ext_test = clf.score(X_test,y_test)
+# print(score_ext_test)
+
+# clf_ext = ExtraTreesClassifier(max_features='auto',bootstrap=True,oob_score=True)
+# param_grid = { "criterion" : ["gini", "entropy"],
+#               "min_samples_leaf" : [1, 5, 10],
+#               "min_samples_split" : [8, 10, 12],
+#               "n_estimators": [20, 50, 100]}
+# gs = GridSearchCV(estimator=clf_ext, param_grid=param_grid, scoring='accuracy', cv=3)
+# gs = gs.fit(X,y)
+# print(gs.best_score_)
+# print(gs.best_params_)
+
+# clf_ext = ExtraTreesClassifier(
+#     max_features='auto',
+#     bootstrap=True,
+#     oob_score=True,
+#     criterion='entropy',
+#     min_samples_leaf=10,
+#     min_samples_split=10,
+#     n_estimators=20
+#     )
+# clf_ext = clf_ext.fit(X,y)
+# score_ext = clf_ext.score(X,y)
+# print(score_ext)
+# print(pd.DataFrame(list(zip(X.columns, np.transpose(clf_ext.feature_importances_))) \
+#             ).sort_values(1, ascending=False).head(10))
+
+def get_redundant_pairs(df):
+    '''Get diagonal and lower triangular pairs of correlation matrix'''
+    pairs_to_drop = set()
+    cols = df.columns
+    for i in range(0, df.shape[1]):
+        for j in range(0, i+1):
+            pairs_to_drop.add((cols[i], cols[j]))
+    return pairs_to_drop
+
+def get_top_abs_correlations(df, n=5):
+    au_corr = df.corr().unstack()
+    labels_to_drop = get_redundant_pairs(df)
+    au_corr = au_corr.drop(labels=labels_to_drop).sort_values(ascending=False)
+    return au_corr[0:n]
+
+print("Top Absolute Correlations")
+print(get_top_abs_correlations(train, 10))
