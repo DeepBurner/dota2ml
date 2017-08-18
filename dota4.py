@@ -29,18 +29,20 @@ from sklearn.model_selection import GridSearchCV
 
 data = pd.read_csv('worked.csv')
 
-train = data
-test = data[800:]
+train = data[:150]
+test = data[150:]
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
+print(len(data))
+print(len(test))
+print(len(train))
 
 y = np.ravel(train[['outcome']])
-X = train.drop('outcome', 1).drop('hero', 1).drop('AHero_0.0', 1).drop('OHero_0.0', 1)
+X = train.drop('outcome', 1).drop('AHero_0.0', 1).drop('OHero_0.0', 1)
 
 y_test = np.ravel(test[['outcome']])
-X_test = test.drop('outcome', 1).drop('hero', 1).drop('AHero_0.0', 1).drop('OHero_0.0', 1)
+X_test = test.drop('outcome', 1).drop('AHero_0.0', 1).drop('OHero_0.0', 1)
 
 
 # clf_svm = svm.SVC(
@@ -110,23 +112,27 @@ X_test = test.drop('outcome', 1).drop('hero', 1).drop('AHero_0.0', 1).drop('OHer
 # print('rf')
 # print(score_rf)
 
-# clf_ext = ExtraTreesClassifier(
-#     max_features='auto',
-#     bootstrap=True,
-#     oob_score=True,
-#     n_estimators=1000,
-#     max_depth=None,
-#     min_samples_split=10
-#     #class_weight="balanced",
-#     #min_weight_fraction_leaf=0.02
-#     )
-# clf_ext = clf_ext.fit(X,y)
-# print('extra trees')
-# score_ext = cross_val_score(clf_ext, X, y, cv=5).mean()
-# print(score_ext)
+clf_ext = ExtraTreesClassifier(
+    max_features='auto',
+    bootstrap=True,
+    oob_score=True,
+    n_estimators=1000,
+    max_depth=None,
+    min_samples_split=10
+    #class_weight="balanced",
+    #min_weight_fraction_leaf=0.02
+    )
+clf_ext = clf_ext.fit(X,y)
+print('extra trees')
+score_ext = cross_val_score(clf_ext, X, y, cv=5).mean()
+print(score_ext)
 
-# import warnings
-# warnings.filterwarnings("ignore")
+print('test test')
+score_ext_test = clf_ext.score(X_test,y_test)
+print(score_ext_test)
+
+import warnings
+warnings.filterwarnings("ignore")
 
 # clf_gb = GradientBoostingClassifier(
 #             #loss='exponential',
@@ -146,13 +152,12 @@ X_test = test.drop('outcome', 1).drop('hero', 1).drop('AHero_0.0', 1).drop('OHer
 # print('adaboost')
 # print(score_ada)
 
-# clf = clf_ext
-# scores = cross_val_score(clf, X, y, cv=5)
-# print(scores)
-# print("Mean score = %.3f, Std deviation = %.3f"%(np.mean(scores),np.std(scores)))
+clf = clf_ext
+scores = cross_val_score(clf, X, y, cv=5)
+print(scores)
+print("Mean score = %.3f, Std deviation = %.3f"%(np.mean(scores),np.std(scores)))
 
-# score_ext_test = clf.score(X_test,y_test)
-# print(score_ext_test)
+
 
 # clf_ext = ExtraTreesClassifier(max_features='auto',bootstrap=True,oob_score=True)
 # param_grid = { "criterion" : ["gini", "entropy"],
@@ -164,21 +169,25 @@ X_test = test.drop('outcome', 1).drop('hero', 1).drop('AHero_0.0', 1).drop('OHer
 # print(gs.best_score_)
 # print(gs.best_params_)
 
-# clf_ext = ExtraTreesClassifier(
-#     max_features='auto',
-#     bootstrap=True,
-#     oob_score=True,
-#     criterion='entropy',
-#     min_samples_leaf=10,
-#     min_samples_split=10,
-#     n_estimators=20
-#     )
-# clf_ext = clf_ext.fit(X,y)
-# score_ext = clf_ext.score(X,y)
-# print(score_ext)
-# print(pd.DataFrame(list(zip(X.columns, np.transpose(clf_ext.feature_importances_))) \
-#             ).sort_values(1, ascending=False).head(10))
+print('--------optimized------------')
 
+clf_ext = ExtraTreesClassifier(
+    max_features='auto',
+    bootstrap=True,
+    oob_score=True,
+    criterion='entropy',
+    min_samples_leaf=1,
+    min_samples_split=8,
+    n_estimators=50
+    )
+clf_ext = clf_ext.fit(X,y)
+score_ext = clf_ext.score(X,y)
+print(score_ext)
+print(pd.DataFrame(list(zip(X.columns, np.transpose(clf_ext.feature_importances_))) \
+            ).sort_values(1, ascending=False).head(10))
+
+
+print('----------------correlations')
 def get_redundant_pairs(df):
     '''Get diagonal and lower triangular pairs of correlation matrix'''
     pairs_to_drop = set()
@@ -195,4 +204,4 @@ def get_top_abs_correlations(df, n=5):
     return au_corr[0:n]
 
 print("Top Absolute Correlations")
-print(get_top_abs_correlations(train, 10))
+print(get_top_abs_correlations(train, 50))

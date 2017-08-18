@@ -28,4 +28,5 @@ for match in matches_array:
 
 data = data.dropna()
 data.to_csv('out.csv')
+print(len(data))
 print(data.head(15))

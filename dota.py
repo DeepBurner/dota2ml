@@ -28,39 +28,53 @@ for i in matches_array:
 
 print(len(matches))
 
+req2 = requests.get("https://api.opendota.com/api/publicmatches")
+
+matches_array = req.json()
+
+print(len(matches_array))
+
+for i in matches_array:
+    try:
+        print("https://api.opendota.com/api/matches/%i" % i['match_id'])
+        _url = "https://api.opendota.com/api/matches/%i" % i['match_id']
+        matches.append(requests.get(_url).json())
+    except:
+        pass
+
 pickle.dump(matches, open("matches.p", "wb" ))
 
-_d = {'hero': [], 'allied1': [], 'allied2': [], 'allied3': [], 'allied4': [], 'opponent1':[], 'opponent2':[], 'opponent3':[], 'opponent4':[], 'opponent5':[], 'outcome':[]}
-data = pd.DataFrame(_d)
+# _d = {'hero': [], 'allied1': [], 'allied2': [], 'allied3': [], 'allied4': [], 'opponent1':[], 'opponent2':[], 'opponent3':[], 'opponent4':[], 'opponent5':[], 'outcome':[]}
+# data = pd.DataFrame(_d)
 
-for match in matches:
-    print(match)
-    players_array= match["players"]
-    radiant = []
-    dire = []
-    for player in players_array:
-        if player['isRadiant'] == True:
-            radiant.append(player['hero_id'])
-        else:
-            dire.append(player['hero_id'])
+# for match in matches:
+#     print(match)
+#     players_array= match["players"]
+#     radiant = []
+#     dire = []
+#     for player in players_array:
+#         if player['isRadiant'] == True:
+#             radiant.append(player['hero_id'])
+#         else:
+#             dire.append(player['hero_id'])
 
-    for player in players_array:
-        hero = player['hero_id']
-        allied_heroes = []
-        opponent = []
-        outcome = player['win']
-        
-        if player['isRadiant'] == True:
-            for plyr in radiant not in [hero]:
-                allied_heroes.append(plyr)
-            for opp in dire:
-                opponent.append(opp)
-        else:
-            for plyr in dire not in [hero]:
-                allied_heroes.append(plyr)
-            for opp in dire:
-                opponent.append(opp)
+#     for player in players_array:
+#         hero = player['hero_id']
+#         allied_heroes = []
+#         opponent = []
+#         outcome = player['win']
 
-        data.append(pd.Series(hero + allied_heroes + opponent + outcome), ignore_index = True)
+#         if player['isRadiant'] == True:
+#             for plyr in radiant not in [hero]:
+#                 allied_heroes.append(plyr)
+#             for opp in dire:
+#                 opponent.append(opp)
+#         else:
+#             for plyr in dire not in [hero]:
+#                 allied_heroes.append(plyr)
+#             for opp in dire:
+#                 opponent.append(opp)
 
-        print(data.head())
+#         data.append(pd.Series(hero + allied_heroes + opponent + outcome), ignore_index = True)
+
+#         print(data.head())
